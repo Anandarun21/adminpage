@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-commerce Page</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.5/axios.min.js"></script>
+</head>
+<body>
+
+
+
+<div id="addProductForm">
+    <h2>Add Product</h2>
+    <label for="productName">Product Name:</label>
+    <input type="text" id="productName" placeholder="Enter product name">
+
+    <label for="sellingPrice">Selling Price:</label>
+    <input type="number" id="sellingPrice" placeholder="Enter selling price">
+
+    <label for="category">Category:</label>
+    <select id="category">
+        <option value="Electronics">Electronics</option>
+        <option value="Books">Books</option>
+        <option value="Food">Food</option>
+        <option value="Clothing">Clothing</option>
+    </select>
+
+    <button onclick="addProduct()">Add Product</button>
+
+    <h1>PRODUCTS</h1>
+
+</div>
+
+<div id="categories"></div>
+
+<script>
+    const apiUrl = 'https://crudcrud.com/api/416476cf4189445489e1edea32387b08/adminpage';
+
+    // Function to fetch and display data
+    const fetchData = async () => {
+        try {
+            const response = await axios.get(apiUrl);
+            const data = response.data;
+
+            // Clear previous content
+            document.getElementById('categories').innerHTML = '';
+
+            // Organize data by category
+            const categories = {};
+            for (const item of data) {
+                if (!categories[item.category]) {
+                    categories[item.category] = [];
+                }
+                categories[item.category].push(item);
+            }
+
+            // Display data by category under the "Add Product" button
+            const productDiv = document.getElementById('categories');
+            for (const category in categories) {
+                const categoryDiv = document.createElement('div');
+                categoryDiv.innerHTML = `<h2>${category}</h2>`;
+                
+                for (const product of categories[category]) {
+                    const productDiv = document.createElement('div');
+                    productDiv.innerHTML = `
+                        <p><strong>Product Name:</strong> ${product.productName}</p>
+                        <p><strong>Selling Price:</strong> ${product.sellingPrice}</p>
+                        <p><strong>Category:</strong> ${product.category}</p>
+                        <button onclick="deleteProduct('${product._id}')">Delete</button>
+                    `;
+                    categoryDiv.appendChild(productDiv);
+                }
+
+                productDiv.appendChild(categoryDiv);
+            }
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        }
+    };
+
+    // Function to add a new product
+    const addProduct = async () => {
+        const productName = document.getElementById('productName').value;
+        const sellingPrice = document.getElementById('sellingPrice').value;
+        const category = document.getElementById('category').value;
+
+        try {
+            await axios.post(apiUrl, { productName, sellingPrice, category });
+            fetchData(); // Refresh the displayed data
+        } catch (error) {
+            console.error('Error adding product:', error);
+        }
+    };
+
+    // Function to delete a product
+    const deleteProduct = async (productId) => {
+        try {
+            await axios.delete(`${apiUrl}/${productId}`);
+            fetchData(); // Refresh the displayed data
+        } catch (error) {
+            console.error('Error deleting product:', error);
+        }
+    };
+
+    // Initial data fetch on page load
+    fetchData();
+</script>
+
+</body>
+</html>
